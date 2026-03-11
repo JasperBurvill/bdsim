@@ -18,6 +18,7 @@ along with BDSIM.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "BDSOutputROOTEventHistogramsSparse.hh"
 
+#include "TAxis.h"
 #include "THnSparse.h"
 #include "BDSDebug.hh"
 #include "BDSException.hh"
@@ -84,7 +85,11 @@ G4int BDSOutputROOTEventHistogramsSparse::Create1DHistogram(G4String name,
                                                             G4String title,
                                                             std::vector<double>& edges)
 {
-  throw BDSException(__METHOD_NAME__, "Construction from edges not currently supported for sparse histograms");
+  std::vector<TAxis> axes;
+  axes.reserve(1); // For a 1D histogram
+  axes.emplace_back((Int_t)edges.size()-1, edges.data());
+  histograms1D.push_back(new THnSparseD(name.c_str(), title.c_str(), axes));
+  return (G4int)histograms1D.size() - 1;
 }
 
 void BDSOutputROOTEventHistogramsSparse::Fill1DHistogram(G4int histoId,
