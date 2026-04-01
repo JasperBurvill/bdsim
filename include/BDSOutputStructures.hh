@@ -36,6 +36,7 @@ class BDSOutputROOTEventCollimatorInfo;
 class BDSOutputROOTEventCoords;
 class BDSOutputROOTEventHeader;
 class BDSOutputROOTEventHistograms;
+class BDSOutputROOTEventHistogramsSparse;
 class BDSOutputROOTEventInfo;
 class BDSOutputROOTEventLoss;
 class BDSOutputROOTEventLossWorld;
@@ -159,7 +160,7 @@ protected:
   std::map<G4int, G4int> samplerIDToIndexSphere;
   
   BDSOutputROOTEventRunInfo*    runInfo;            ///< Run information.
-  BDSOutputROOTEventHistograms* runHistos;          ///< Run level histograms
+  BDSOutputROOTEventHistogramsSparse* runHistos;          ///< Run level histograms
   BDSOutputROOTEventLoss*       eLoss;              ///< General energy deposition.
   BDSOutputROOTEventLoss*       pFirstHit;          ///< Primary hit point.
   BDSOutputROOTEventLoss*       pLastHit;           ///< Primary loss point.
@@ -170,7 +171,7 @@ protected:
   BDSOutputROOTEventLossWorld*  eLossWorldContents; ///< Externally supplied world contents hits.
   BDSOutputROOTEventAperture*   apertureImpacts;    ///< Impacts on the aperture.
   BDSOutputROOTEventTrajectory* traj;               ///< Trajectories.
-  BDSOutputROOTEventHistograms* evtHistos;          ///< Event level histograms.
+  BDSOutputROOTEventHistogramsSparse* evtHistos;          ///< Event level histograms.
   BDSOutputROOTEventInfo*       evtInfo;            ///< Event information.
 
   // collimator specific output

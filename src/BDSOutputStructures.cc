@@ -30,6 +30,7 @@ along with BDSIM.  If not, see <http://www.gnu.org/licenses/>.
 #include "BDSOutputROOTEventCoords.hh"
 #include "BDSOutputROOTEventHeader.hh"
 #include "BDSOutputROOTEventHistograms.hh"
+#include "BDSOutputROOTEventHistogramsSparse.hh"
 #include "BDSOutputROOTEventInfo.hh"
 #include "BDSOutputROOTEventLoss.hh"
 #include "BDSOutputROOTEventLossWorld.hh"
@@ -102,9 +103,9 @@ BDSOutputStructures::BDSOutputStructures(const BDSGlobalConstants* globals):
   apertureImpacts = new BDSOutputROOTEventAperture();
   
   traj       = new BDSOutputROOTEventTrajectory();
-  evtHistos  = new BDSOutputROOTEventHistograms();
+  evtHistos  = new BDSOutputROOTEventHistogramsSparse();
   evtInfo    = new BDSOutputROOTEventInfo();
-  runHistos  = new BDSOutputROOTEventHistograms();
+  runHistos  = new BDSOutputROOTEventHistogramsSparse();
   runInfo    = new BDSOutputROOTEventRunInfo();
 
 #ifndef __ROOTDOUBLE__

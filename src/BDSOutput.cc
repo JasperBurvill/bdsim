@@ -42,7 +42,7 @@ along with BDSIM.  If not, see <http://www.gnu.org/licenses/>.
 #include "BDSOutputROOTEventCoords.hh"
 #include "BDSOutputROOTEventLossWorld.hh"
 #include "BDSOutputROOTEventHeader.hh"
-#include "BDSOutputROOTEventHistograms.hh"
+#include "BDSOutputROOTEventHistogramsSparse.hh"
 #include "BDSOutputROOTEventInfo.hh"
 #include "BDSOutputROOTEventLoss.hh"
 #include "BDSOutputROOTEventModel.hh"
@@ -73,6 +73,7 @@ along with BDSIM.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "TH1D.h"
 #include "TH3D.h"
+#include "THnSparse.h"
 
 #include "parser/beamBase.h"
 #include "parser/optionsBase.h"
@@ -1155,9 +1156,10 @@ void BDSOutput::FillScorerHitsIndividual(const G4String& histogramDefName,
       G4double unit   = BDS::MapGetWithDefault(histIndexToUnits3D, histIndex, 1.0);
       // avoid using [] operator for map as we have no default constructor for BDSHistBinMapper3D
       const BDSHistBinMapper& mapper = scorerCoordinateMaps.at(histogramDefName);
-      TH3D* hist = evtHistos->Get3DHistogram(histIndex);
+      THnSparseD* hist = evtHistos->Get3DHistogram(histIndex);
       G4int x,y,z,e;
 #if G4VERSION < 1039
+      int hit_counter;
       for (const auto& hit : *hitMap->GetMap())
 #else
       for (const auto& hit : *hitMap)
@@ -1165,8 +1167,10 @@ void BDSOutput::FillScorerHitsIndividual(const G4String& histogramDefName,
         {
           // convert from scorer global index to 3d i,j,k index of 3d scorer
           mapper.IJKLFromGlobal(hit.first, x,y,z,e);
-          G4int rootGlobalIndex = (hist->GetBin(x + 1, y + 1, z + 1)); // convert to root system (add 1 to avoid underflow bin)
+          Int_t idx[3] = {x + 1, y + 1, z + 1};
+          G4int rootGlobalIndex = static_cast<G4int>(hist->GetBin(idx)); // convert to root system (add 1 to avoid underflow bin)
           evtHistos->Set3DHistogramBinContent(histIndex, rootGlobalIndex, *hit.second / unit);
+          hit_counter++;
         }
       runHistos->AccumulateHistogram3D(histIndex, evtHistos->Get3DHistogram(histIndex));
     }
@@ -1233,11 +1237,11 @@ void BDSOutput::CopyFromHistToHist1D(const G4String& sourceName,
                                      const G4String& destinationName,
                                      const std::vector<G4int>& indices)
 {
-  TH1D* sourceEvt      = evtHistos->Get1DHistogram(histIndices1D[sourceName]);
-  TH1D* destinationEvt = evtHistos->Get1DHistogram(histIndices1D[destinationName]);
+  THnSparseD* sourceEvt      = evtHistos->Get1DHistogram(histIndices1D[sourceName]);
+  THnSparseD* destinationEvt = evtHistos->Get1DHistogram(histIndices1D[destinationName]);
   // for the run ones we are overwriting but this is ok
-  TH1D* sourceRun      = runHistos->Get1DHistogram(histIndices1D[sourceName]);
-  TH1D* destinationRun = runHistos->Get1DHistogram(histIndices1D[destinationName]);
+  THnSparseD* sourceRun      = runHistos->Get1DHistogram(histIndices1D[sourceName]);
+  THnSparseD* destinationRun = runHistos->Get1DHistogram(histIndices1D[destinationName]);
   G4int binIndex = 1; // starts at 1 for TH1; 0 is underflow
   for (const auto index : indices)
     {

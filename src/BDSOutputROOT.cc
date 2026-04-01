@@ -26,7 +26,7 @@ along with BDSIM.  If not, see <http://www.gnu.org/licenses/>.
 #include "BDSOutputROOTEventCoords.hh"
 #include "BDSOutputROOTEventLossWorld.hh"
 #include "BDSOutputROOTEventHeader.hh"
-#include "BDSOutputROOTEventHistograms.hh"
+#include "BDSOutputROOTEventHistogramsSparse.hh"
 #include "BDSOutputROOTEventInfo.hh"
 #include "BDSOutputROOTEventLoss.hh"
 #include "BDSOutputROOTEventModel.hh"
@@ -95,7 +95,7 @@ void BDSOutputROOT::NewFile()
   theBeamOutputTree->Branch("Beam.",           "BDSOutputROOTEventBeam",      beamOutput,       32000, 2);
   theOptionsOutputTree->Branch("Options.",     "BDSOutputROOTEventOptions",   optionsOutput,    32000, 2);
   theModelOutputTree->Branch("Model.",         "BDSOutputROOTEventModel",     modelOutput,      32000, globals->ModelSplitLevel());
-  theRunOutputTree->Branch("Histos.",          "BDSOutputROOTEventHistograms",runHistos,        32000, 1);
+  theRunOutputTree->Branch("Histos.",          "BDSOutputROOTEventHistogramsSparse",runHistos,        32000, 1);
   theRunOutputTree->Branch("Summary.",         "BDSOutputROOTEventRunInfo",   runInfo,          32000, 1);
 
   // Branches for event...
@@ -134,7 +134,7 @@ void BDSOutputROOT::NewFile()
 
   // Build event histograms
   if (storePerEventHistos)
-    {theEventOutputTree->Branch("Histos.",     "BDSOutputROOTEventHistograms", evtHistos, 32000, 1);}
+    {theEventOutputTree->Branch("Histos.",     "BDSOutputROOTEventHistogramsSparse", evtHistos, 32000, 1);}
 
   // build sampler structures
   for (G4int i = 0; i < (G4int)samplerTrees.size(); ++i)
