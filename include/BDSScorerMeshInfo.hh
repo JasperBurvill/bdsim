@@ -66,6 +66,7 @@ public:
   G4double eHigh;
   std::string eScale;
   std::vector<double> eBinsEdges ={};
+  G4bool storeSparse;
 #ifdef USE_BOOST
   boost_histogram_axes_variant energyAxis;
 #endif

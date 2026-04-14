@@ -58,6 +58,7 @@ namespace GMAD
     double eHigh;       ///< E High limit.
     std::string eScale; ///< E scaling type.
     std::string eBinsEdgesFilenamePath; ///< E bins edges filename path.
+    bool storeSparse; ///< Stores data in sparse histograms.
 
     // placement stuff
     std::string sequence;     ///< Name of sequence to place.
