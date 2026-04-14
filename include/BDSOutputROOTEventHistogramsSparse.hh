@@ -54,9 +54,9 @@ public:
   BDSOutputROOTEventHistogramsSparse() = default;
   BDSOutputROOTEventHistogramsSparse(const BDSOutputROOTEventHistogramsSparse &h);
   BDSOutputROOTEventHistogramsSparse operator=(const BDSOutputROOTEventHistogramsSparse&) = delete;
-  BDSOutputROOTEventHistogramsSparse(std::vector<THnSparseD*>& histograms1DIn,
-             std::vector<THnSparseD*>& histograms2DIn,
-             std::vector<THnSparseD*>& histograms3DIn,
+  BDSOutputROOTEventHistogramsSparse(std::vector<THnSparseF*>& histograms1DIn,
+             std::vector<THnSparseF*>& histograms2DIn,
+             std::vector<THnSparseF*>& histograms3DIn,
              std::vector<BDSBH4DBase*>& histograms4DIn);
   virtual ~BDSOutputROOTEventHistogramsSparse();
 
@@ -111,7 +111,7 @@ public:
 
   /// Add the values from one supplied 3D histogram to another. Uses TH3-Add().
   void AccumulateHistogram3D(G4int histoId,
-           THnSparseD* otherHistogram);
+           THnSparseF* otherHistogram);
 
   void AccumulateHistogram4D(G4int histoId,
                              BDSBH4DBase* otherHistogram);
@@ -127,20 +127,20 @@ public:
   void FillSimple(const BDSOutputROOTEventHistogramsSparse* rhs);
 
   /// @{ Accessors.
-  std::vector<THnSparseD*>& Get1DHistograms() {return histograms1D;}
-  std::vector<THnSparseD*>& Get2DHistograms() {return histograms2D;}
-  std::vector<THnSparseD*>& Get3DHistograms() {return histograms3D;}
+  std::vector<THnSparseF*>& Get1DHistograms() {return histograms1D;}
+  std::vector<THnSparseF*>& Get2DHistograms() {return histograms2D;}
+  std::vector<THnSparseF*>& Get3DHistograms() {return histograms3D;}
   std::vector<BDSBH4DBase*>& Get4DHistograms() {return histograms4D;}
-  THnSparseD* Get1DHistogram(int iHisto) const {return histograms1D[iHisto];}
-  THnSparseD* Get2DHistogram(int iHisto) const {return histograms2D[iHisto];}
-  THnSparseD* Get3DHistogram(int iHisto) const {return histograms3D[iHisto];}
+  THnSparseF* Get1DHistogram(int iHisto) const {return histograms1D[iHisto];}
+  THnSparseF* Get2DHistogram(int iHisto) const {return histograms2D[iHisto];}
+  THnSparseF* Get3DHistogram(int iHisto) const {return histograms3D[iHisto];}
   BDSBH4DBase* Get4DHistogram(int iHisto) const {return histograms4D[iHisto];}
   /// @}
 
 private:
-  std::vector<THnSparseD*> histograms1D;
-  std::vector<THnSparseD*> histograms2D;
-  std::vector<THnSparseD*> histograms3D;
+  std::vector<THnSparseF*> histograms1D;
+  std::vector<THnSparseF*> histograms2D;
+  std::vector<THnSparseF*> histograms3D;
   std::vector<BDSBH4DBase*> histograms4D;
 
   ClassDef(BDSOutputROOTEventHistogramsSparse,4)

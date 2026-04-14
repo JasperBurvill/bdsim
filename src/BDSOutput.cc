@@ -592,7 +592,6 @@ void BDSOutput::CreateHistograms()
           const auto def = nameDef.second;
           // use safe output name without any slashes in the name
           G4int histID = -1;
-
           if (def.nBinsE <=1)
             {
               if (def.geometryType == "box")
@@ -1156,10 +1155,9 @@ void BDSOutput::FillScorerHitsIndividual(const G4String& histogramDefName,
       G4double unit   = BDS::MapGetWithDefault(histIndexToUnits3D, histIndex, 1.0);
       // avoid using [] operator for map as we have no default constructor for BDSHistBinMapper3D
       const BDSHistBinMapper& mapper = scorerCoordinateMaps.at(histogramDefName);
-      THnSparseD* hist = evtHistos->Get3DHistogram(histIndex);
+      THnSparseF* hist = evtHistos->Get3DHistogram(histIndex);
       G4int x,y,z,e;
 #if G4VERSION < 1039
-      int hit_counter;
       for (const auto& hit : *hitMap->GetMap())
 #else
       for (const auto& hit : *hitMap)
@@ -1169,8 +1167,8 @@ void BDSOutput::FillScorerHitsIndividual(const G4String& histogramDefName,
           mapper.IJKLFromGlobal(hit.first, x,y,z,e);
           Int_t idx[3] = {x + 1, y + 1, z + 1};
           G4int rootGlobalIndex = static_cast<G4int>(hist->GetBin(idx)); // convert to root system (add 1 to avoid underflow bin)
+          // TODO Check whether this static cast is robust enough
           evtHistos->Set3DHistogramBinContent(histIndex, rootGlobalIndex, *hit.second / unit);
-          hit_counter++;
         }
       runHistos->AccumulateHistogram3D(histIndex, evtHistos->Get3DHistogram(histIndex));
     }
@@ -1237,11 +1235,11 @@ void BDSOutput::CopyFromHistToHist1D(const G4String& sourceName,
                                      const G4String& destinationName,
                                      const std::vector<G4int>& indices)
 {
-  THnSparseD* sourceEvt      = evtHistos->Get1DHistogram(histIndices1D[sourceName]);
-  THnSparseD* destinationEvt = evtHistos->Get1DHistogram(histIndices1D[destinationName]);
+  THnSparseF* sourceEvt      = evtHistos->Get1DHistogram(histIndices1D[sourceName]);
+  THnSparseF* destinationEvt = evtHistos->Get1DHistogram(histIndices1D[destinationName]);
   // for the run ones we are overwriting but this is ok
-  THnSparseD* sourceRun      = runHistos->Get1DHistogram(histIndices1D[sourceName]);
-  THnSparseD* destinationRun = runHistos->Get1DHistogram(histIndices1D[destinationName]);
+  THnSparseF* sourceRun      = runHistos->Get1DHistogram(histIndices1D[sourceName]);
+  THnSparseF* destinationRun = runHistos->Get1DHistogram(histIndices1D[destinationName]);
   G4int binIndex = 1; // starts at 1 for TH1; 0 is underflow
   for (const auto index : indices)
     {
