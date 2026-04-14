@@ -272,7 +272,8 @@ private:
 
   /// Fill an individual scorer hits map into a particular output histogram.
   void FillScorerHitsIndividual(const G4String& hsitogramDefName,
-                                const G4THitsMap<G4double>* hitMap);
+                                const G4THitsMap<G4double>* hitMap,
+                                bool  storeSparse);
 
   void FillScorerHitsIndividualBLM(const G4String& histogramDefName,
                                    const G4THitsMap<G4double>* hitMap);

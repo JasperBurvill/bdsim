@@ -32,6 +32,8 @@ along with BDSIM.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Rtypes.h"
 #include "TObject.h"
+#include "TTree.h"
+#include "THnSparse.h"
 #include "BDSBH4DBase.hh"
 
 class TH1D;
@@ -54,21 +56,37 @@ public:
 			       std::vector<TH2D*>& histogram2DIn,
 			       std::vector<TH3D*>& histogram3DIn,
 			       std::vector<BDSBH4DBase*>& histograms4DIn);
+  BDSOutputROOTEventHistograms(std::vector<THnSparseF*>& histogram1DIn,
+             std::vector<THnSparseF*>& histogram2DIn,
+             std::vector<THnSparseF*>& histogram3DIn,
+             std::vector<BDSBH4DBase*>& histograms4DIn);
   virtual ~BDSOutputROOTEventHistograms();
 
   /// Interface function to create a 1D histogram using only standard types.
   int Create1DHistogramSTD(std::string name, std::string title,
 			   int nbins, double xmin, double xmax);
+  int Create1DHistogramSTDSparse(std::string name, std::string title,
+         int nbins, double xmin, double xmax);
 
 #ifndef __ROOTBUILD__
   G4int Create1DHistogram(G4String name, G4String title,
                           G4int nbins, G4double xmin, G4double xmax);
   G4int Create1DHistogram(G4String name, G4String title,
                           std::vector<double>& edges);
+  G4int Create1DHistogramSparse(G4String name, G4String title,
+                          G4int nbins, G4double xmin, G4double xmax);
+  G4int Create1DHistogramSparse(G4String name, G4String title,
+                          std::vector<double>& edges);
   G4int Create2DHistogram(G4String name, G4String title,
                           G4int nxbins, G4double xmin, G4double xmax,
                           G4int nybins, G4double ymin, G4double ymax);
   G4int Create2DHistogram(G4String name, G4String title,
+                          std::vector<double>& xedges,
+                          std::vector<double>& yedges);
+  G4int Create2DHistogramSparse(G4String name, G4String title,
+                          G4int nxbins, G4double xmin, G4double xmax,
+                          G4int nybins, G4double ymin, G4double ymax);
+  G4int Create2DHistogramSparse(G4String name, G4String title,
                           std::vector<double>& xedges,
                           std::vector<double>& yedges);
   G4int Create3DHistogram(G4String name, G4String title,
@@ -79,6 +97,14 @@ public:
 			  std::vector<double>& xedges,
 			  std::vector<double>& yedges,
 			  std::vector<double>& zedges);
+  G4int Create3DHistogramSparse(G4String name, G4String title,
+        G4int nxbins, G4double xmin, G4double xmax,
+        G4int nybins, G4double ymin, G4double ymax,
+        G4int nzbins, G4double zmin, G4double zmax);
+  G4int Create3DHistogramSparse(G4String name, G4String title,
+        std::vector<double>& xedges,
+        std::vector<double>& yedges,
+        std::vector<double>& zedges);
   G4int Create4DHistogram(const G4String& name,
 			  const G4String& title,
 			  const G4String& eScale,
@@ -89,8 +115,11 @@ public:
                           unsigned int nebins, G4double emin, G4double emax);
 
   void Fill1DHistogram(G4int histoId, G4double value, G4double weight = 1.0);
+  void Fill1DHistogramSparse(G4int histoId, G4double value, G4double weight = 1.0);
   void Fill2DHistogram(G4int histoId, G4double xValue, G4double yValue, G4double weight = 1.0);
+  void Fill2DHistogramSparse(G4int histoId, G4double xValue, G4double yValue, G4double weight = 1.0);
   void Fill3DHistogram(G4int histoId, G4double xValue, G4double yValue, G4double zValue, G4double weight = 1.0);
+  void Fill3DHistogramSparse(G4int histoId, G4double xValue, G4double yValue, G4double zValue, G4double weight = 1.0);
   void Fill4DHistogram(G4int histoId, G4double xValue, G4double yValue, G4double zvalue, G4double eValue);
   
   /// Set the value of a bin by (ROOT!!) global bin index. Note the TH3 function should
@@ -98,6 +127,9 @@ public:
   void Set3DHistogramBinContent(G4int    histoId,
 				G4int    globalBinID,
 				G4double value);
+  void Set3DHistogramBinContentSparse(G4int    histoId,
+        G4int    globalBinID,
+        G4double value);
 
   void Set4DHistogramBinContent(G4int   histoId,
                 G4int    x,
@@ -109,6 +141,8 @@ public:
   /// Add the values from one supplied 3D histogram to another. Uses TH3-Add().
   void AccumulateHistogram3D(G4int histoId,
 			     TH3D* otherHistogram);
+  void AccumulateHistogram3DSparse(G4int histoId,
+           THnSparseF* otherHistogram);
   void AccumulateHistogram4D(G4int histoId,
                              BDSBH4DBase* otherHistogram);
 #endif
@@ -125,17 +159,28 @@ public:
   std::vector<TH1D*>& Get1DHistograms() {return histograms1D;}
   std::vector<TH2D*>& Get2DHistograms() {return histograms2D;}
   std::vector<TH3D*>& Get3DHistograms() {return histograms3D;}
+  std::vector<THnSparseF*>& Get1DHistogramsSparse() {return histograms1Dsparse;}
+  std::vector<THnSparseF*>& Get2DHistogramsSparse() {return histograms2Dsparse;}
+  std::vector<THnSparseF*>& Get3DHistogramsSparse() {return histograms3Dsparse;}
   std::vector<BDSBH4DBase*>& Get4DHistograms() {return histograms4D;}
   TH1D* Get1DHistogram(int iHisto) const {return histograms1D[iHisto];}
   TH2D* Get2DHistogram(int iHisto) const {return histograms2D[iHisto];}
   TH3D* Get3DHistogram(int iHisto) const {return histograms3D[iHisto];}
+  THnSparseF* Get1DHistogramSparse(int iHisto) const {return histograms1Dsparse[iHisto];}
+  THnSparseF* Get2DHistogramSparse(int iHisto) const {return histograms2Dsparse[iHisto];}
+  THnSparseF* Get3DHistogramSparse(int iHisto) const {return histograms3Dsparse[iHisto];}
   BDSBH4DBase* Get4DHistogram(int iHisto) const {return histograms4D[iHisto];}
+
+
   /// @}
 
 private:
   std::vector<TH1D*> histograms1D;
   std::vector<TH2D*> histograms2D;
   std::vector<TH3D*> histograms3D;
+  std::vector<THnSparseF*> histograms1Dsparse;
+  std::vector<THnSparseF*> histograms2Dsparse;
+  std::vector<THnSparseF*> histograms3Dsparse;
   std::vector<BDSBH4DBase*> histograms4D;
 
   ClassDef(BDSOutputROOTEventHistograms,4);

@@ -55,8 +55,26 @@ BDSOutputROOTEventHistograms::BDSOutputROOTEventHistograms(std::vector<TH1D*>& h
   histograms4D(histograms4DIn)
 {;}
 
-BDSOutputROOTEventHistograms::~BDSOutputROOTEventHistograms()
+BDSOutputROOTEventHistograms::BDSOutputROOTEventHistograms(std::vector<THnSparseF*>& histograms1DIn,
+                                                           std::vector<THnSparseF*>& histograms2DIn,
+                                                           std::vector<THnSparseF*>& histograms3DIn,
+                                                           std::vector<BDSBH4DBase*>& histograms4DIn):
+  histograms1Dsparse(histograms1DIn),
+  histograms2Dsparse(histograms2DIn),
+  histograms3Dsparse(histograms3DIn),
+  histograms4D(histograms4DIn)
 {;}
+
+BDSOutputROOTEventHistograms::~BDSOutputROOTEventHistograms()
+{
+  for (auto h : histograms1D) {delete h;}
+  for (auto h : histograms2D) {delete h;}
+  for (auto h : histograms3D) {delete h;}
+  for (auto h : histograms1Dsparse) {delete h;}
+  for (auto h : histograms2Dsparse) {delete h;}
+  for (auto h : histograms3Dsparse) {delete h;}
+  for (auto h : histograms4D) {delete h;}
+}
 
 void BDSOutputROOTEventHistograms::FillSimple(const BDSOutputROOTEventHistograms* rhs)
 {
@@ -66,6 +84,9 @@ void BDSOutputROOTEventHistograms::FillSimple(const BDSOutputROOTEventHistograms
   histograms1D = rhs->histograms1D;
   histograms2D = rhs->histograms2D;
   histograms3D = rhs->histograms3D;
+  histograms1Dsparse = rhs->histograms1Dsparse;
+  histograms2Dsparse = rhs->histograms2Dsparse;
+  histograms3Dsparse = rhs->histograms3Dsparse;
   histograms4D = rhs->histograms4D;
 }
 
@@ -81,6 +102,12 @@ void BDSOutputROOTEventHistograms::Fill(const BDSOutputROOTEventHistograms* rhs)
     {histograms2D.push_back(static_cast<TH2D*>(h->Clone()));}
   for (auto h : rhs->histograms3D)
     {histograms3D.push_back(static_cast<TH3D*>(h->Clone()));}
+  for (auto h : rhs->histograms1Dsparse)
+    {histograms1Dsparse.push_back(static_cast<THnSparseF*>(h->Clone()));}
+  for (auto h : rhs->histograms2Dsparse)
+    {histograms2Dsparse.push_back(static_cast<THnSparseF*>(h->Clone()));}
+  for (auto h : rhs->histograms3Dsparse)
+    {histograms3Dsparse.push_back(static_cast<THnSparseF*>(h->Clone()));}
 #ifdef USE_BOOST
   for (auto h : rhs->histograms4D)
     {histograms4D.push_back(static_cast<BDSBH4DBase*>(h->Clone("")));}
@@ -93,6 +120,16 @@ int BDSOutputROOTEventHistograms::Create1DHistogramSTD(std::string name, std::st
 {
   histograms1D.push_back(new TH1D(name.c_str(),title.c_str(), nbins, xmin, xmax));
   return (int)histograms1D.size() - 1;
+}
+
+int BDSOutputROOTEventHistograms::Create1DHistogramSTDSparse(std::string name, std::string title,
+                                                             int nbins, double xmin, double xmax)
+{
+  Int_t bins[1] = {nbins};
+  Double_t mins[1] = {xmin};
+  Double_t maxs[1] = {xmax};
+  histograms1Dsparse.push_back(new THnSparseF(name.c_str(), title.c_str(), 1, bins, mins, maxs));
+  return (int)histograms1Dsparse.size() - 1;
 }
 
 #ifndef __ROOTBUILD__
@@ -112,6 +149,27 @@ G4int BDSOutputROOTEventHistograms::Create1DHistogram(G4String name,
   return (G4int)histograms1D.size() - 1;
 }
 
+G4int BDSOutputROOTEventHistograms::Create1DHistogramSparse(G4String name, G4String title,
+                                                            G4int nbins, G4double xmin, G4double xmax)
+{
+  Int_t bins[1] = {nbins};
+  Double_t mins[1] = {xmin};
+  Double_t maxs[1] = {xmax};
+  histograms1Dsparse.push_back(new THnSparseF(name.c_str(), title.c_str(), 1, bins, mins, maxs));
+  return (G4int)histograms1Dsparse.size() - 1;
+}
+
+G4int BDSOutputROOTEventHistograms::Create1DHistogramSparse(G4String name,
+                                                            G4String title,
+                                                            std::vector<double>& edges)
+{
+  std::vector<TAxis> axes;
+  axes.reserve(1); // For a 1D histogram
+  axes.emplace_back((Int_t)edges.size()-1, edges.data());
+  histograms1Dsparse.push_back(new THnSparseF(name.c_str(), title.c_str(), axes));
+  return (G4int)histograms1Dsparse.size() - 1;
+}
+
 G4int BDSOutputROOTEventHistograms::Create2DHistogram(G4String name, G4String title,
                                                       G4int nxbins, G4double xmin, G4double xmax,
                                                       G4int nybins, G4double ymin, G4double ymax)
@@ -128,6 +186,29 @@ G4int BDSOutputROOTEventHistograms::Create2DHistogram(G4String name, G4String ti
                                   (Int_t)xedges.size()-1, xedges.data(),
                                   (Int_t)yedges.size()-1, yedges.data()));
   return (G4int)histograms2D.size() - 1;
+}
+
+G4int BDSOutputROOTEventHistograms::Create2DHistogramSparse(G4String name, G4String title,
+                                                            G4int nxbins, G4double xmin, G4double xmax,
+                                                            G4int nybins, G4double ymin, G4double ymax)
+{
+  Int_t bins[2] = {nxbins, nybins};
+  Double_t mins[2] = {xmin, ymin};
+  Double_t maxs[2] = {xmax, ymax};
+  histograms2Dsparse.push_back(new THnSparseF(name.c_str(), title.c_str(), 2, bins, mins, maxs));
+  return (G4int)histograms2Dsparse.size() - 1;
+}
+
+G4int BDSOutputROOTEventHistograms::Create2DHistogramSparse(G4String name, G4String title,
+                                                            std::vector<double>& xedges,
+                                                            std::vector<double>& yedges)
+{
+  std::vector<TAxis> axes;
+  axes.reserve(2); // For a 2D histogram
+  axes.emplace_back((Int_t)xedges.size()-1, xedges.data());
+  axes.emplace_back((Int_t)yedges.size()-1, yedges.data());
+  histograms2Dsparse.push_back(new THnSparseF(name.c_str(), title.c_str(), axes));
+  return (G4int)histograms2Dsparse.size() - 1;
 }
 
 G4int BDSOutputROOTEventHistograms::Create3DHistogram(G4String name, G4String title,
@@ -152,6 +233,32 @@ G4int BDSOutputROOTEventHistograms::Create3DHistogram(G4String name, G4String ti
                                   (Int_t)yedges.size()-1, yedges.data(),
                                   (Int_t)zedges.size()-1, zedges.data()));
   return (G4int)histograms3D.size() - 1;
+}
+
+G4int BDSOutputROOTEventHistograms::Create3DHistogramSparse(G4String name, G4String title,
+                                                            G4int nxbins, G4double xmin, G4double xmax,
+                                                            G4int nybins, G4double ymin, G4double ymax,
+                                                            G4int nzbins, G4double zmin, G4double zmax)
+{
+  Int_t bins[3] = {nxbins, nybins, nzbins};
+  Double_t mins[3] = {xmin, ymin, zmin};
+  Double_t maxs[3] = {xmax, ymax, zmax};
+  histograms3Dsparse.push_back(new THnSparseF(name.c_str(), title.c_str(), 3, bins, mins, maxs));
+  return (G4int)histograms3Dsparse.size() - 1;
+}
+
+G4int BDSOutputROOTEventHistograms::Create3DHistogramSparse(G4String name, G4String title,
+                                                            std::vector<double>& xedges,
+                                                            std::vector<double>& yedges,
+                                                            std::vector<double>& zedges)
+{
+  std::vector<TAxis> axes;
+  axes.reserve(3); // For a 3D histogram
+  axes.emplace_back((Int_t)xedges.size()-1, xedges.data());
+  axes.emplace_back((Int_t)yedges.size()-1, yedges.data());
+  axes.emplace_back((Int_t)zedges.size()-1, zedges.data());
+  histograms3Dsparse.push_back(new THnSparseF(name.c_str(), title.c_str(), axes));
+  return (G4int)histograms3Dsparse.size() - 1;
 }
 
 #ifdef USE_BOOST
@@ -213,12 +320,27 @@ void BDSOutputROOTEventHistograms::Fill1DHistogram(G4int    histoId,
   histograms1D[histoId]->Fill(value,weight);
 }
 
+void BDSOutputROOTEventHistograms::Fill1DHistogramSparse(G4int histoId,
+                                                         G4double value,
+                                                         G4double weight)
+{
+  histograms1Dsparse[histoId]->Fill(value, weight);
+}
+
 void BDSOutputROOTEventHistograms::Fill2DHistogram(G4int    histoId,
                                                    G4double xValue,
                                                    G4double yValue,
                                                    G4double weight)
 {
   histograms2D[histoId]->Fill(xValue,yValue,weight);
+}
+
+void BDSOutputROOTEventHistograms::Fill2DHistogramSparse(G4int    histoId,
+                                                   G4double xValue,
+                                                   G4double yValue,
+                                                   G4double weight)
+{
+  histograms2Dsparse[histoId]->Fill(xValue,yValue,weight);
 }
 
 void BDSOutputROOTEventHistograms::Fill3DHistogram(G4int    histoId,
@@ -228,6 +350,15 @@ void BDSOutputROOTEventHistograms::Fill3DHistogram(G4int    histoId,
                                                    G4double weight)
 {
   histograms3D[histoId]->Fill(xValue,yValue,zValue,weight);
+}
+
+void BDSOutputROOTEventHistograms::Fill3DHistogramSparse(G4int    histoId,
+                                                         G4double xValue,
+                                                         G4double yValue,
+                                                         G4double zValue,
+                                                         G4double weight)
+{
+  histograms3Dsparse[histoId]->Fill(xValue,yValue,zValue,weight);
 }
 
 #ifdef USE_BOOST
@@ -257,6 +388,13 @@ void BDSOutputROOTEventHistograms::Set3DHistogramBinContent(G4int histoId,
   histograms3D[histoId]->SetBinContent(globalBinID, value);
 }
 
+void BDSOutputROOTEventHistograms::Set3DHistogramBinContentSparse(G4int histoId,
+                                                                  G4int globalBinID,
+                                                                  G4double value)
+{
+  histograms3Dsparse[histoId]->SetBinContent(globalBinID, value);
+}
+
 #ifdef USE_BOOST
 void BDSOutputROOTEventHistograms::Set4DHistogramBinContent(G4int histoId,
                                                             G4int x,
@@ -280,6 +418,12 @@ void BDSOutputROOTEventHistograms::AccumulateHistogram3D(G4int histoId,
   histograms3D[histoId]->Add(otherHistogram);
 }
 
+void BDSOutputROOTEventHistograms::AccumulateHistogram3DSparse(G4int histoId,
+                                                               THnSparseF* otherHistogram)
+{
+  histograms3Dsparse[histoId]->Add(otherHistogram);
+}
+
 void BDSOutputROOTEventHistograms::AccumulateHistogram4D(G4int histoId,
                                                          BDSBH4DBase* otherHistogram)
 {
@@ -296,6 +440,12 @@ void BDSOutputROOTEventHistograms::Flush()
     {h->Reset();}
   for (auto h : histograms3D)
     {h->Reset();}
+  for (auto h : histograms1Dsparse)
+  {h->Reset();}
+  for (auto h : histograms2Dsparse)
+  {h->Reset();}
+  for (auto h : histograms3Dsparse)
+  {h->Reset();}
 #ifdef USE_BOOST
   for (auto h : histograms4D)
     {h->Reset_BDSBH4D();}

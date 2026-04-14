@@ -121,6 +121,11 @@ protected:
 			  G4int    nBinsX, G4double xMin, G4double xMax,
 			  G4int    nBinsY, G4double yMin, G4double yMax,
 			  G4int    nBinsZ, G4double zMin, G4double zMax);
+  G4int Create3DHistogramSparse(G4String name,
+        G4String title,
+        G4int    nBinsX, G4double xMin, G4double xMax,
+        G4int    nBinsY, G4double yMin, G4double yMax,
+        G4int    nBinsZ, G4double zMin, G4double zMax);
   G4int Create4DHistogram(const G4String& name,
 			  const G4String& title,
 			  const G4String& eScale,
@@ -160,7 +165,7 @@ protected:
   std::map<G4int, G4int> samplerIDToIndexSphere;
   
   BDSOutputROOTEventRunInfo*    runInfo;            ///< Run information.
-  BDSOutputROOTEventHistogramsSparse* runHistos;          ///< Run level histograms
+  BDSOutputROOTEventHistograms* runHistos;          ///< Run level histograms
   BDSOutputROOTEventLoss*       eLoss;              ///< General energy deposition.
   BDSOutputROOTEventLoss*       pFirstHit;          ///< Primary hit point.
   BDSOutputROOTEventLoss*       pLastHit;           ///< Primary loss point.
@@ -171,7 +176,7 @@ protected:
   BDSOutputROOTEventLossWorld*  eLossWorldContents; ///< Externally supplied world contents hits.
   BDSOutputROOTEventAperture*   apertureImpacts;    ///< Impacts on the aperture.
   BDSOutputROOTEventTrajectory* traj;               ///< Trajectories.
-  BDSOutputROOTEventHistogramsSparse* evtHistos;          ///< Event level histograms.
+  BDSOutputROOTEventHistograms* evtHistos;          ///< Event level histograms.
   BDSOutputROOTEventInfo*       evtInfo;            ///< Event information.
 
   // collimator specific output

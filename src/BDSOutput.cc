@@ -42,7 +42,7 @@ along with BDSIM.  If not, see <http://www.gnu.org/licenses/>.
 #include "BDSOutputROOTEventCoords.hh"
 #include "BDSOutputROOTEventLossWorld.hh"
 #include "BDSOutputROOTEventHeader.hh"
-#include "BDSOutputROOTEventHistogramsSparse.hh"
+#include "BDSOutputROOTEventHistograms.hh"
 #include "BDSOutputROOTEventInfo.hh"
 #include "BDSOutputROOTEventLoss.hh"
 #include "BDSOutputROOTEventModel.hh"
@@ -596,17 +596,37 @@ void BDSOutput::CreateHistograms()
             {
               if (def.geometryType == "box")
                 {
-                  histID = Create3DHistogram(def.outputName, def.outputName,
-                                             def.nBinsX, def.xLow/CLHEP::m, def.xHigh/CLHEP::m,
-                                             def.nBinsY, def.yLow/CLHEP::m, def.yHigh/CLHEP::m,
-                                             def.nBinsZ, def.zLow/CLHEP::m, def.zHigh/CLHEP::m);
+                  if (!def.storeSparse)
+                    {
+                      histID = Create3DHistogram(def.outputName, def.outputName,
+                                                 def.nBinsX, def.xLow/CLHEP::m, def.xHigh/CLHEP::m,
+                                                 def.nBinsY, def.yLow/CLHEP::m, def.yHigh/CLHEP::m,
+                                                 def.nBinsZ, def.zLow/CLHEP::m, def.zHigh/CLHEP::m);
+                    }
+                  else
+                    {
+                      histID = Create3DHistogramSparse(def.outputName, def.outputName,
+                                                  def.nBinsX, def.xLow/CLHEP::m, def.xHigh/CLHEP::m,
+                                                  def.nBinsY, def.yLow/CLHEP::m, def.yHigh/CLHEP::m,
+                                                  def.nBinsZ, def.zLow/CLHEP::m, def.zHigh/CLHEP::m);
+                    }
                 }
               else if (def.geometryType == "cylindrical")
                 {
-                  histID = Create3DHistogram(def.outputName, def.outputName,
-                                             def.nBinsZ, def.zLow/CLHEP::m, def.zHigh/CLHEP::m,
-                                             def.nBinsPhi, 0, CLHEP::twopi,
-                                             def.nBinsR, def.rInner / CLHEP::m, def.rOuter / CLHEP::m);
+                  if (!def.storeSparse)
+                    {
+                      histID = Create3DHistogram(def.outputName, def.outputName,
+                                           def.nBinsZ, def.zLow/CLHEP::m, def.zHigh/CLHEP::m,
+                                           def.nBinsPhi, 0, CLHEP::twopi,
+                                           def.nBinsR, def.rInner / CLHEP::m, def.rOuter / CLHEP::m);
+                    }
+                  else
+                    {
+                      histID = Create3DHistogramSparse(def.outputName, def.outputName,
+                                           def.nBinsZ, def.zLow/CLHEP::m, def.zHigh/CLHEP::m,
+                                           def.nBinsPhi, 0, CLHEP::twopi,
+                                           def.nBinsR, def.rInner / CLHEP::m, def.rOuter / CLHEP::m);
+                    }
                 }
               
               histIndices3D[def.uniqueName] = histID;
@@ -1127,8 +1147,11 @@ void BDSOutput::FillApertureImpacts(const BDSHitsCollectionApertureImpacts* hits
 
 void BDSOutput::FillScorerHits(const std::map<G4String, G4THitsMap<G4double>*>& scorerHitsMap)
 {
+  const std::map<G4String, BDSScorerHistogramDef> scorerHistogramDefs = BDSAcceleratorModel::Instance()->ScorerHistogramDefinitionsMap();
   for (const auto& nameHitsMap : scorerHitsMap)
     {
+      const auto& def = scorerHistogramDefs.at(nameHitsMap.first);
+      bool storeSparse = def.storeSparse;
 #if G4VERSION < 1039
       if (nameHitsMap.second->GetSize() == 0)
 #else
@@ -1139,12 +1162,13 @@ void BDSOutput::FillScorerHits(const std::map<G4String, G4THitsMap<G4double>*>& 
 #else
         {continue;}
 #endif
-      FillScorerHitsIndividual(nameHitsMap.first, nameHitsMap.second);
+      FillScorerHitsIndividual(nameHitsMap.first, nameHitsMap.second, storeSparse);
     }
 }
 
 void BDSOutput::FillScorerHitsIndividual(const G4String& histogramDefName,
-                                         const G4THitsMap<G4double>* hitMap)
+                                         const G4THitsMap<G4double>* hitMap,
+                                         bool storeSparse)
 {
   if (BDS::StrContains(histogramDefName, "blm_"))
     {return FillScorerHitsIndividualBLM(histogramDefName, hitMap);}
@@ -1155,22 +1179,42 @@ void BDSOutput::FillScorerHitsIndividual(const G4String& histogramDefName,
       G4double unit   = BDS::MapGetWithDefault(histIndexToUnits3D, histIndex, 1.0);
       // avoid using [] operator for map as we have no default constructor for BDSHistBinMapper3D
       const BDSHistBinMapper& mapper = scorerCoordinateMaps.at(histogramDefName);
-      THnSparseF* hist = evtHistos->Get3DHistogram(histIndex);
-      G4int x,y,z,e;
-#if G4VERSION < 1039
-      for (const auto& hit : *hitMap->GetMap())
-#else
-      for (const auto& hit : *hitMap)
-#endif
+      if (!storeSparse)
         {
-          // convert from scorer global index to 3d i,j,k index of 3d scorer
-          mapper.IJKLFromGlobal(hit.first, x,y,z,e);
-          Int_t idx[3] = {x + 1, y + 1, z + 1};
-          G4int rootGlobalIndex = static_cast<G4int>(hist->GetBin(idx)); // convert to root system (add 1 to avoid underflow bin)
-          // TODO Check whether this static cast is robust enough
-          evtHistos->Set3DHistogramBinContent(histIndex, rootGlobalIndex, *hit.second / unit);
+          TH3D* hist = evtHistos->Get3DHistogram(histIndex);
+          G4int x,y,z,e;
+#if G4VERSION < 1039
+          for (const auto& hit : *hitMap->GetMap())
+#else
+          for (const auto& hit : *hitMap)
+#endif
+            {
+              // convert from scorer global index to 3d i,j,k index of 3d scorer
+              mapper.IJKLFromGlobal(hit.first, x,y,z,e);
+              G4int rootGlobalIndex = (hist->GetBin(x + 1, y + 1, z + 1)); // convert to root system (add 1 to avoid underflow bin)
+              evtHistos->Set3DHistogramBinContent(histIndex, rootGlobalIndex, *hit.second / unit);
+            }
+          runHistos->AccumulateHistogram3D(histIndex, evtHistos->Get3DHistogram(histIndex));
         }
-      runHistos->AccumulateHistogram3D(histIndex, evtHistos->Get3DHistogram(histIndex));
+      else
+        {
+          THnSparseF* hist = evtHistos->Get3DHistogramSparse(histIndex);
+          G4int x,y,z,e;
+#if G4VERSION < 1039
+          for (const auto& hit : *hitMap->GetMap())
+#else
+          for (const auto& hit : *hitMap)
+#endif
+            {
+              // convert from scorer global index to 3d i,j,k index of 3d scorer
+              mapper.IJKLFromGlobal(hit.first, x,y,z,e);
+              Int_t idx[3] = {x + 1, y + 1, z + 1};
+              G4int rootGlobalIndex = static_cast<G4int>(hist->GetBin(idx)); // convert to root system (add 1 to avoid underflow bin)
+              // TODO Check whether this static cast is robust enough
+              evtHistos->Set3DHistogramBinContentSparse(histIndex, rootGlobalIndex, *hit.second / unit);
+            }
+          runHistos->AccumulateHistogram3DSparse(histIndex, evtHistos->Get3DHistogramSparse(histIndex));
+        }
     }
   
   if (!(histIndices4D.find(histogramDefName) == histIndices4D.end()))
@@ -1235,11 +1279,11 @@ void BDSOutput::CopyFromHistToHist1D(const G4String& sourceName,
                                      const G4String& destinationName,
                                      const std::vector<G4int>& indices)
 {
-  THnSparseF* sourceEvt      = evtHistos->Get1DHistogram(histIndices1D[sourceName]);
-  THnSparseF* destinationEvt = evtHistos->Get1DHistogram(histIndices1D[destinationName]);
+  TH1D* sourceEvt      = evtHistos->Get1DHistogram(histIndices1D[sourceName]);
+  TH1D* destinationEvt = evtHistos->Get1DHistogram(histIndices1D[destinationName]);
   // for the run ones we are overwriting but this is ok
-  THnSparseF* sourceRun      = runHistos->Get1DHistogram(histIndices1D[sourceName]);
-  THnSparseF* destinationRun = runHistos->Get1DHistogram(histIndices1D[destinationName]);
+  TH1D* sourceRun      = runHistos->Get1DHistogram(histIndices1D[sourceName]);
+  TH1D* destinationRun = runHistos->Get1DHistogram(histIndices1D[destinationName]);
   G4int binIndex = 1; // starts at 1 for TH1; 0 is underflow
   for (const auto index : indices)
     {

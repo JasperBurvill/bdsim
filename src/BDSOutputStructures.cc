@@ -103,9 +103,9 @@ BDSOutputStructures::BDSOutputStructures(const BDSGlobalConstants* globals):
   apertureImpacts = new BDSOutputROOTEventAperture();
   
   traj       = new BDSOutputROOTEventTrajectory();
-  evtHistos  = new BDSOutputROOTEventHistogramsSparse();
+  evtHistos  = new BDSOutputROOTEventHistograms();
   evtInfo    = new BDSOutputROOTEventInfo();
-  runHistos  = new BDSOutputROOTEventHistogramsSparse();
+  runHistos  = new BDSOutputROOTEventHistograms();
   runInfo    = new BDSOutputROOTEventRunInfo();
 
 #ifndef __ROOTDOUBLE__
@@ -180,6 +180,23 @@ G4int BDSOutputStructures::Create3DHistogram(G4String name, G4String title,
 			       nBinsX, xMin, xMax,
 			       nBinsY, yMin, yMax,
 			       nBinsZ, zMin, zMax);
+  return result;
+}
+
+G4int BDSOutputStructures::Create3DHistogramSparse(G4String name, G4String title,
+               G4int nBinsX, G4double xMin, G4double xMax,
+               G4int nBinsY, G4double yMin, G4double yMax,
+               G4int nBinsZ, G4double zMin, G4double zMax)
+{
+  G4int result = evtHistos->Create3DHistogramSparse(name, title,
+                nBinsX, xMin, xMax,
+                nBinsY, yMin, yMax,
+                nBinsZ, zMin, zMax);
+  // index from runHistos will be the same as used only through interfaces in this class
+  runHistos->Create3DHistogramSparse(name, title,
+             nBinsX, xMin, xMax,
+             nBinsY, yMin, yMax,
+             nBinsZ, zMin, zMax);
   return result;
 }
 
