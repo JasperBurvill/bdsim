@@ -61,6 +61,15 @@ HistogramMeanFromFile::HistogramMeanFromFile(BDSOutputROOTEventHistograms* h)
       histograms3d.push_back(new HistogramAccumulator(hist, 3, name, title));
     }
 
+  for (auto histSparse : h->Get3DHistogramsSparse())
+    {
+      std::string name  = std::string(histSparse->GetName());
+      std::string title = std::string(histSparse->GetTitle());
+      TH3D* hist = (TH3D*) histSparse->Projection(0, 1, 2);
+      hist->SetName(histSparse->GetName());
+      histograms3d.push_back(new HistogramAccumulator(hist, 3, name, title));
+    }
+
   for (auto hist : h->Get4DHistograms())
     {
       std::string name  = hist->GetName();
@@ -92,6 +101,12 @@ void HistogramMeanFromFile::Accumulate(BDSOutputROOTEventHistograms* hNew)
   for (unsigned int i = 0; i < (unsigned int)histograms2d.size(); ++i)
     {histograms2d[i]->Accumulate(h2i[i]);}
   auto h3i = hNew->Get3DHistograms();
+  auto h3iSparse = hNew->Get3DHistogramsSparse();
+  for (auto* sparse : h3iSparse) {
+    auto* h3 = sparse->Projection(0, 1, 2);
+    h3->SetName(sparse->GetName());
+    h3i.push_back(h3);
+  }
   for (unsigned int i = 0; i < (unsigned int)histograms3d.size(); ++i)
     {histograms3d[i]->Accumulate(h3i[i]);}
   auto h4i = hNew->Get4DHistograms();

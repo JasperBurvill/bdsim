@@ -24,7 +24,7 @@ along with BDSIM.  If not, see <http://www.gnu.org/licenses/>.
 #include "TfsFile.hh"
 
 #include "BDSOutputROOTEventHeader.hh"
-#include "BDSOutputROOTEventHistogramsSparse.hh"
+#include "BDSOutputROOTEventHistograms.hh"
 #include "BDSOutputROOTEventInfo.hh"
 #include "BDSOutputROOTEventLoss.hh"
 #include "BDSOutputROOTEventModel.hh"
@@ -132,14 +132,14 @@ int main(int argc, char *argv[])
   auto primaryLHit = new BDSOutputROOTEventLoss();
   auto tunnelLocal = new BDSOutputROOTEventLoss();
   auto trajLocal   = new BDSOutputROOTEventTrajectory();
-  auto histsLocal  = new BDSOutputROOTEventHistogramsSparse();
+  auto histsLocal  = new BDSOutputROOTEventHistograms();
   eventOutputTree->Branch("Info.",           "BDSOutputROOTEventInfo",      infoLocal,   32000, 1);
   eventOutputTree->Branch("Eloss.",          "BDSOutputROOTEventLoss",      eLossLocal,  4000,  1);
   eventOutputTree->Branch("PrimaryFirstHit.","BDSOutputROOTEventLoss",      primaryFHit, 4000,  2);
   eventOutputTree->Branch("PrimaryLastHit.", "BDSOutputROOTEventLoss",      primaryLHit, 4000,  2);
   eventOutputTree->Branch("TunnelHit.",      "BDSOutputROOTEventLoss",      tunnelLocal, 4000,  2);
   eventOutputTree->Branch("Trajectory.",     "BDSOutputROOTEventTrajectory",trajLocal,   4000,  2);
-  eventOutputTree->Branch("Histos.",         "BDSOutputROOTEventHistogramsSparse",histsLocal,  32000, 1);
+  eventOutputTree->Branch("Histos.",         "BDSOutputROOTEventHistograms",histsLocal,  32000, 1);
   
   // shortcut for handiness
 #ifndef __ROOTDOUBLE__
